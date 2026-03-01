@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+stock_assistant.db
+.vscode/
+.idea/
+*.egg-info/
+dist/
+build/

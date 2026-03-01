@@ -1,0 +1,8 @@
+yfinance
+pandas-ta
+pandas
+numpy
+feedparser
+requests
+openai
+python-dotenv
