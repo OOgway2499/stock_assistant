@@ -90,14 +90,45 @@ export async function POST(req: NextRequest) {
 
         // Agentic tool-calling loop
         for (let i = 0; i < MAX_ITERATIONS; i++) {
-            const response = await groq.chat.completions.create({
-                model: GROQ_MODEL,
-                messages,
-                tools: TOOLS,
-                tool_choice: "auto",
-                temperature: 0.7,
-                max_tokens: 4096,
-            });
+            let response;
+            try {
+                response = await groq.chat.completions.create({
+                    model: GROQ_MODEL,
+                    messages,
+                    tools: TOOLS,
+                    tool_choice: "auto",
+                    temperature: 0.3,
+                    max_tokens: 4096,
+                });
+            } catch (toolError: unknown) {
+                // Handle Groq's "tool_use_failed" error —
+                // the model generated a malformed tool call.
+                // Retry WITHOUT tools so it gives a plain text answer.
+                const errMsg = toolError instanceof Error ? toolError.message : String(toolError);
+                console.warn("[/api/chat] Tool call failed, retrying without tools:", errMsg);
+
+                try {
+                    const fallback = await groq.chat.completions.create({
+                        model: GROQ_MODEL,
+                        messages,
+                        temperature: 0.3,
+                        max_tokens: 4096,
+                        // No tools — force text-only response
+                    });
+                    return NextResponse.json({
+                        response:
+                            fallback.choices[0]?.message?.content ||
+                            "I had trouble processing that. Could you rephrase your question?",
+                        toolsUsed: [...new Set(toolsUsed)],
+                    });
+                } catch (fallbackError: unknown) {
+                    const fbMsg = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+                    return NextResponse.json({
+                        response: `I'm having trouble connecting to the AI service. Please try again in a moment. (${fbMsg})`,
+                        toolsUsed: [],
+                    });
+                }
+            }
 
             const choice = response.choices[0];
 
@@ -113,7 +144,13 @@ export async function POST(req: NextRequest) {
                 const toolCalls = choice.message.tool_calls || [];
                 const toolResults = await Promise.all(
                     toolCalls.map(async (tc) => {
-                        const args = JSON.parse(tc.function.arguments || "{}");
+                        let args: Record<string, string> = {};
+                        try {
+                            args = JSON.parse(tc.function.arguments || "{}");
+                        } catch {
+                            console.warn("[/api/chat] Bad tool args:", tc.function.arguments);
+                            args = {};
+                        }
                         toolsUsed.push(tc.function.name);
                         const result = await executeTool(tc.function.name, args);
                         return {
@@ -147,7 +184,7 @@ export async function POST(req: NextRequest) {
         const msg = e instanceof Error ? e.message : String(e);
         return NextResponse.json(
             {
-                response: `Sorry, I encountered an error: ${msg}. Please try again.`,
+                response: `Sorry, I encountered an error. Please try again. (${msg})`,
                 toolsUsed: [],
             },
             { status: 500 }
