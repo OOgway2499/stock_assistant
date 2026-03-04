@@ -10,12 +10,28 @@ def get_stock_price(symbol: str) -> dict:
     """
     Get current stock price with market timing context.
 
+    Data source priority:
+    1. Angel One Market Feeds API → real-time (0 delay) ✅
+    2. yfinance → fallback (15 min delay) ⚠️
+
     Args:
         symbol: NSE stock symbol (e.g. RELIANCE, TCS)
 
     Returns:
         dict with price data and source info
     """
+    # PRIMARY: Angel One real-time
+    try:
+        from data_sources.angel_realtime import get_angel_manager
+        manager = get_angel_manager()
+        if manager.is_logged_in:
+            result = manager.get_live_price(symbol)
+            if result and "error" not in result:
+                return result
+    except Exception as e:
+        print(f"⚠️ Angel One failed → using yfinance: {e}")
+
+    # FALLBACK: yfinance (existing code — unchanged)
     try:
         data = yfinance_data.get_stock_price(symbol)
         data["data_source"] = "yfinance (15 min delayed)"

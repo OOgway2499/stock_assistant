@@ -26,8 +26,30 @@ def get_technicals(symbol: str, period: str = "3mo") -> dict:
         dict with indicator values and plain-English signals
     """
     try:
-        # 1. Fetch historical data
-        df = yfinance_data.get_stock_history(symbol, period=period, interval="1d")
+        df = None
+
+        # PRIMARY: Angel One Historical API
+        try:
+            from data_sources.angel_realtime import get_angel_manager
+            manager = get_angel_manager()
+            if manager.is_logged_in:
+                candles = manager.get_historical_candles(symbol, "ONE_DAY")
+                if candles and len(candles) > 50:
+                    df = pd.DataFrame(
+                        candles,
+                        columns=["timestamp", "open", "high", "low", "close", "volume"],
+                    )
+                    df.columns = ["Date", "Open", "High", "Low", "Close", "Volume"]
+                    df["Date"] = pd.to_datetime(df["Date"])
+                    df.set_index("Date", inplace=True)
+                    print(f"📊 Using Angel One historical data for {symbol} ({len(df)} candles)")
+        except Exception as e:
+            print(f"⚠️ Angel One historical failed → using yfinance: {e}")
+            df = None
+
+        # FALLBACK: yfinance (existing code — unchanged)
+        if df is None:
+            df = yfinance_data.get_stock_history(symbol, period=period, interval="1d")
 
         if isinstance(df, dict) and "error" in df:
             return df

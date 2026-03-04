@@ -1,20 +1,33 @@
 /**
- * Stock Data Functions — Uses yahoo-finance2 (server-side).
- * Replaces Python yfinance with equivalent npm package.
+ * Stock Data Functions — Uses Angel One (primary) + yahoo-finance2 v3 (fallback).
+ * Angel One provides real-time data; yahoo-finance2 is the backup.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import yahooFinance from "yahoo-finance2";
+import YahooFinance from "yahoo-finance2";
+import { getAngelLivePrice } from "@/lib/angelOne";
+
+// yahoo-finance2 v3 requires constructor instantiation
+const yf = new (YahooFinance as any)();
 
 /**
- * Get current stock price for an NSE/BSE stock.
+ * Get current stock price — Angel One first, yahoo-finance2 fallback.
  */
 export async function getStockPrice(symbol: string) {
+    // PRIMARY: Angel One real-time
+    try {
+        const angelData = await getAngelLivePrice(symbol);
+        if (angelData) return angelData;
+    } catch {
+        // Silent fallback to yahoo-finance2
+    }
+
+    // FALLBACK: yahoo-finance2
     try {
         const suffixes = [".NS", ".BO"];
         for (const suffix of suffixes) {
             try {
-                const quote: any = await yahooFinance.quote(
+                const quote: any = await yf.quote(
                     symbol.toUpperCase() + suffix
                 );
                 if (!quote || !quote.regularMarketPrice) continue;
@@ -52,7 +65,7 @@ export async function getStockPrice(symbol: string) {
 }
 
 /**
- * Get historical OHLCV data.
+ * Get historical OHLCV data using yahoo-finance2 v3 chart() API.
  */
 export async function getStockHistory(
     symbol: string,
@@ -71,16 +84,18 @@ export async function getStockHistory(
         };
         startDate.setDate(now.getDate() - (periodMap[period] || 90));
 
-        const result: any[] = await yahooFinance.historical(
+        // v3 uses chart() instead of deprecated historical()
+        const result: any = await yf.chart(
             symbol.toUpperCase() + ".NS",
             { period1: startDate, period2: now, interval: "1d" }
         );
 
-        if (!result || result.length === 0) {
+        const quotes = result?.quotes;
+        if (!quotes || !Array.isArray(quotes) || quotes.length === 0) {
             return { error: `No historical data for ${symbol}` };
         }
 
-        return result.map((r: any) => ({
+        return quotes.map((r: any) => ({
             date: new Date(r.date).toISOString().split("T")[0],
             open: r.open,
             high: r.high,
@@ -100,7 +115,7 @@ export async function getStockHistory(
 export async function getFundamentals(symbol: string) {
     try {
         const ticker = symbol.toUpperCase() + ".NS";
-        const result: any = await yahooFinance.quoteSummary(ticker, {
+        const result: any = await yf.quoteSummary(ticker, {
             modules: [
                 "summaryDetail",
                 "defaultKeyStatistics",

@@ -8,6 +8,7 @@ import { TOOLS } from "@/lib/tools";
 import { getStockPrice, getTechnicals, getFundamentals } from "@/lib/stockData";
 import { getMarketOverview } from "@/lib/nseData";
 import { getNews } from "@/lib/newsData";
+import { getAngelPortfolio } from "@/lib/angelOne";
 import type Groq from "groq-sdk";
 
 type ChatMessage = Groq.Chat.Completions.ChatCompletionMessageParam;
@@ -43,6 +44,9 @@ async function executeTool(
                 break;
             case "get_market_overview":
                 result = await getMarketOverview();
+                break;
+            case "get_portfolio":
+                result = await getAngelPortfolio() || { error: "Portfolio not available — Angel One not configured" };
                 break;
             default:
                 result = { error: `Unknown tool: ${name}` };

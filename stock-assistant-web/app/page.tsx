@@ -6,16 +6,21 @@ import ChatWindow from "@/components/chat/ChatWindow";
 import MarketOverview from "@/components/dashboard/MarketOverview";
 import GainersLosers from "@/components/dashboard/GainersLosers";
 import SectorPerformance from "@/components/dashboard/SectorPerformance";
+import LivePriceTicker from "@/components/dashboard/LivePriceTicker";
+import AngelOneStatus from "@/components/dashboard/AngelOneStatus";
+import MarketDepth from "@/components/dashboard/MarketDepth";
+import PortfolioWidget from "@/components/portfolio/PortfolioWidget";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useMarketData } from "@/hooks/useMarketData";
 import { MessageSquare, BarChart3, Star } from "lucide-react";
 
 export default function Home() {
-  const { marketData, isLoading, lastUpdated, refetch } = useMarketData();
+  const { marketData, isLoading, lastUpdated, isRealtime, refetch } = useMarketData();
   const [externalQuery, setExternalQuery] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<"chat" | "market" | "watchlist">(
     "chat"
   );
+  const [depthSymbol, setDepthSymbol] = useState<string | null>(null);
 
   const handleQuery = (query: string) => {
     setExternalQuery(query);
@@ -24,6 +29,9 @@ export default function Home() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
+      {/* Live Price Ticker — NEW */}
+      <LivePriceTicker />
+
       {/* Header */}
       <Header
         marketStatus={marketData?.marketStatus || "closed"}
@@ -41,8 +49,8 @@ export default function Home() {
             key={tab.key}
             onClick={() => setMobileTab(tab.key)}
             className={`flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-all ${mobileTab === tab.key
-                ? "border-b-2 border-blue-500 text-blue-400"
-                : "text-gray-500"
+              ? "border-b-2 border-blue-500 text-blue-400"
+              : "text-gray-500"
               }`}
           >
             <tab.icon className="h-3.5 w-3.5" />
@@ -80,7 +88,10 @@ export default function Home() {
             </div>
           ) : (
             <div className="space-y-6">
-              <MarketOverview indices={marketData?.indices || []} />
+              <MarketOverview
+                indices={marketData?.indices || []}
+                isRealtime={isRealtime}
+              />
 
               <GainersLosers
                 gainers={marketData?.gainers || []}
@@ -90,6 +101,10 @@ export default function Home() {
 
               <SectorPerformance indices={marketData?.indices || []} />
 
+              {/* Angel One widgets — NEW */}
+              <AngelOneStatus />
+              <PortfolioWidget />
+
               {lastUpdated && (
                 <p className="text-center text-[10px] text-gray-600">
                   Last updated:{" "}
@@ -97,6 +112,9 @@ export default function Home() {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
+                  {isRealtime && (
+                    <span className="ml-1 text-green-500">• Real-time</span>
+                  )}
                 </p>
               )}
             </div>
@@ -111,6 +129,12 @@ export default function Home() {
           <Sidebar onQuery={handleQuery} />
         </div>
       </main>
+
+      {/* Market Depth Modal — NEW */}
+      {depthSymbol && (
+        <MarketDepth symbol={depthSymbol} onClose={() => setDepthSymbol(null)} />
+      )}
     </div>
   );
 }
+

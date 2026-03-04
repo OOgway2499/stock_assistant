@@ -7,6 +7,7 @@ export function useMarketData() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+    const [isRealtime, setIsRealtime] = useState(false);
 
     const fetchData = useCallback(async () => {
         try {
@@ -23,6 +24,17 @@ export function useMarketData() {
                 setLastUpdated(new Date());
                 setError(null);
             }
+
+            // Check if Angel One is connected
+            try {
+                const statusRes = await fetch("/api/angel?type=status", {
+                    signal: AbortSignal.timeout(5000),
+                });
+                const status = await statusRes.json();
+                setIsRealtime(status.isConnected === true);
+            } catch {
+                setIsRealtime(false);
+            }
         } catch (e: unknown) {
             const msg = e instanceof Error ? e.message : "Failed to fetch market data";
             setError(msg);
@@ -34,18 +46,18 @@ export function useMarketData() {
     useEffect(() => {
         fetchData();
 
-        // Auto-refresh every 60 seconds during market hours (9AM-4PM IST)
+        // Auto-refresh: 10s if Angel One connected, 60s otherwise
         const interval = setInterval(() => {
             const now = new Date();
-            const istHour = (now.getUTCHours() + 5) % 24; // Rough IST
+            const istHour = (now.getUTCHours() + 5) % 24;
             const isWeekday = now.getDay() >= 1 && now.getDay() <= 5;
             if (isWeekday && istHour >= 9 && istHour < 16) {
                 fetchData();
             }
-        }, 60000);
+        }, isRealtime ? 10000 : 60000);
 
         return () => clearInterval(interval);
-    }, [fetchData]);
+    }, [fetchData, isRealtime]);
 
-    return { marketData, isLoading, error, lastUpdated, refetch: fetchData };
+    return { marketData, isLoading, error, lastUpdated, isRealtime, refetch: fetchData };
 }

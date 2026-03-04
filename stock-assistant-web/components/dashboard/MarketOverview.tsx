@@ -2,7 +2,13 @@
 import { TrendingUp, TrendingDown } from "lucide-react";
 import type { MarketIndex } from "@/types";
 
-export default function MarketOverview({ indices }: { indices: MarketIndex[] }) {
+export default function MarketOverview({
+    indices,
+    isRealtime = false,
+}: {
+    indices: MarketIndex[];
+    isRealtime?: boolean;
+}) {
     if (!indices || indices.length === 0) {
         return (
             <div className="glass-card p-4 text-center text-gray-500 text-sm">
@@ -19,9 +25,21 @@ export default function MarketOverview({ indices }: { indices: MarketIndex[] }) 
 
     return (
         <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-                Indices
-            </h3>
+            <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+                    Indices
+                </h3>
+                {isRealtime ? (
+                    <span className="flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[9px] font-bold text-green-400">
+                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-400 live-pulse" />
+                        LIVE
+                    </span>
+                ) : (
+                    <span className="rounded-full bg-yellow-500/10 px-2 py-0.5 text-[9px] font-bold text-yellow-500">
+                        15m delay
+                    </span>
+                )}
+            </div>
             <div className="space-y-2">
                 {display.map((index) => {
                     const isUp = (index.change ?? 0) >= 0;

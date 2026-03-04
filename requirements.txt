@@ -6,3 +6,6 @@ feedparser
 requests
 openai
 python-dotenv
+smartapi-python
+pyotp
+websocket-client

@@ -105,4 +105,17 @@ export const TOOLS: ToolDef[] = [
             },
         },
     },
+    {
+        type: "function",
+        function: {
+            name: "get_portfolio",
+            description:
+                "Get user's Angel One portfolio holdings — shows stocks owned, quantity, average price, current price, profit/loss",
+            parameters: {
+                type: "object",
+                properties: {},
+                required: [],
+            },
+        },
+    },
 ];
