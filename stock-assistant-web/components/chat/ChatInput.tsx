@@ -40,7 +40,7 @@ export default function ChatInput({ onSend, isLoading }: Props) {
                     placeholder={
                         isLoading
                             ? "Analyzing..."
-                            : "Ask about any stock, market, or sector..."
+                            : "Ask about NSE/BSE stocks, Nifty, technicals, IPOs, mutual funds..."
                     }
                     disabled={isLoading}
                     rows={1}

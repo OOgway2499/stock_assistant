@@ -71,6 +71,55 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // ── SEBI COMPLIANCE TOPIC GUARD ─────────────────────────
+        const BLOCKED_TOPICS_TS = [
+            "dengue", "malaria", "covid", "corona", "disease",
+            "doctor", "hospital", "medicine", "surgery",
+            "cricket", "football", "ipl", "match", "score",
+            "movie", "film", "actor", "actress", "bollywood",
+            "recipe", "cooking", "biryani", "restaurant",
+            "travel", "hotel", "flight", "vacation",
+            "relationship", "love", "marriage", "dating",
+            "coding tutorial", "programming help",
+            "history lesson", "geography", "biology",
+            "physics", "chemistry", "mathematics problem",
+            "astrology", "horoscope", "numerology",
+            "election", "political party", "politician",
+        ];
+
+        const ALLOWED_TOPICS_TS = [
+            "stock", "share", "market", "nifty", "sensex",
+            "nse", "bse", "equity", "price", "invest",
+            "trade", "trading", "rsi", "macd", "sma", "ema",
+            "pe ratio", "eps", "revenue", "profit", "loss",
+            "dividend", "bonus", "split", "ipo", "fpo",
+            "futures", "options", "f&o", "derivatives",
+            "mutual fund", "sip", "etf", "nav",
+            "portfolio", "holdings", "sector", "index",
+            "bullish", "bearish", "support", "resistance",
+            "trend", "breakout", "volume", "technical",
+            "fundamental", "quarterly", "results",
+            "rbi", "sebi", "inflation", "gdp", "rupee",
+            "reliance", "tcs", "infosys", "hdfc", "icici",
+            "sbi", "wipro", "bajaj", "adani", "tata",
+            "fii", "dii", "promoter", "market cap",
+            "analyst", "target", "stop loss", "broker",
+            "demat", "nsdl", "cdsl", "circuit", "vix",
+        ];
+
+        const lowerQuery = userQuery.toLowerCase();
+        const isBlocked = BLOCKED_TOPICS_TS.some((t) => lowerQuery.includes(t));
+        const isAllowed = ALLOWED_TOPICS_TS.some((t) => lowerQuery.includes(t));
+        const isShort = userQuery.trim().split(" ").length <= 2;
+
+        if (isBlocked && !isAllowed) {
+            return NextResponse.json({
+                response: `📊 I am exclusively designed for Indian Stock Market analysis and cannot help with that topic.\n\nAs a SEBI-compliant financial assistant, my scope is strictly limited to capital markets.\n\n✅ I can help you with:\n- 📈 **Live NSE/BSE stock prices**\n- 🔢 **Technical analysis** — RSI, MACD, SMA\n- 💰 **Fundamentals** — PE ratio, EPS, Revenue\n- 📰 **Market news** and IPO analysis\n- 🏦 **Nifty, Sensex, Bank Nifty** data\n- 📊 **Mutual funds** and ETF analysis\n- 🇮🇳 **Indian economy** and RBI policy impact\n\nPlease ask me anything about Indian capital markets! 😊\n\n⚠️ Disclaimer: Market information only. Not financial advice. Consult a SEBI-registered advisor before investing.`,
+                toolsUsed: [],
+            });
+        }
+        // ────────────────────────────────────────────────────────
+
         // Build message list
         const messages: ChatMessage[] = [
             { role: "system", content: SYSTEM_PROMPT },

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Report — Indian Stock Market AI Assistant</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0d1117; color:#e6edf3; font-family:'Segoe UI',system-ui,-apple-system,sans-serif; padding:24px; }
+.header { text-align:center; margin-bottom:32px; }
+.header h1 { font-size:28px; margin-bottom:4px; }
+.header .subtitle { color:#8b949e; font-size:14px; }
+.cards { display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-bottom:32px; }
+.card { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:20px; text-align:center; }
+.card .label { color:#8b949e; font-size:12px; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.card .value { font-size:32px; font-weight:700; }
+.card .value.pass { color:#4ade80; }
+.card .value.fail { color:#f87171; }
+.card .value.skip { color:#facc15; font-size:24px; line-height:38px; }
+table { width:100%; border-collapse:collapse; margin-bottom:32px; background:#161b22; border-radius:12px; overflow:hidden; }
+th { background:#21262d; color:#8b949e; text-align:left; padding:12px 16px; font-size:13px; text-transform:uppercase; letter-spacing:1px; }
+td { padding:12px 16px; border-bottom:1px solid #21262d; }
+td.pass, .health-status.pass { color:#4ade80; font-weight:600; }
+td.fail, .health-status.fail { color:#f87171; font-weight:600; }
+td.skip, .health-status.skip { color:#facc15; font-weight:600; }
+.section { margin-bottom:32px; }
+.section h2 { font-size:20px; margin-bottom:16px; border-bottom:1px solid #30363d; padding-bottom:8px; }
+.cat-header { color:#58a6ff; font-size:16px; margin:20px 0 10px; }
+.test-row { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:10px 16px; margin:6px 0; display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+.test-row.passed { border-left:3px solid #4ade80; }
+.test-row.failed { border-left:3px solid #f87171; }
+.test-row.skipped { border-left:3px solid #facc15; }
+.test-icon { font-size:16px; }
+.test-name { flex:1; font-size:14px; }
+.test-time { color:#8b949e; font-size:12px; }
+.test-msg { width:100%; color:#8b949e; font-size:13px; padding:4px 0 0 28px; font-family:monospace; white-space:pre-wrap; }
+.health-row { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:10px 16px; margin:6px 0; display:flex; align-items:center; gap:10px; }
+.health-name { flex:1; font-weight:500; }
+.health-status { font-size:13px; }
+.rec-item { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:10px 16px; margin:6px 0; font-size:14px; line-height:1.5; }
+.rec-item.success { border-left:3px solid #4ade80; }
+</style>
+</head>
+<body>
+<div class="header">
+    <h1>🇮🇳 Indian Stock Market AI Assistant</h1>
+    <div class="subtitle">Test Report — 12 March 2026, 01:27 PM</div>
+</div>
+
+<div class="cards">
+    <div class="card"><div class="label">Total Tests</div><div class="value">73</div></div>
+    <div class="card"><div class="label">Passed</div><div class="value pass">68 ✅</div></div>
+    <div class="card"><div class="label">Failed</div><div class="value fail">2 ❌</div></div>
+    <div class="card"><div class="label">Skipped (Not Failed)</div><div class="value skip">3 ⏭️</div></div>
+    <div class="card"><div class="label">Score (Configured)</div><div class="value" style="color:#4ade80">97.1%</div></div>
+</div>
+
+<div class="section">
+    <h2>📊 Category Summary</h2>
+    <table>
+        <tr><th>Category</th><th>Tests</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Status</th></tr>
+        
+        <tr>
+            <td>Data Sources</td>
+            <td>15</td>
+            <td class="pass">10</td>
+            <td class="fail">2</td>
+            <td class="skip">3</td>
+            <td>❌</td>
+        </tr>
+        <tr>
+            <td>Tools</td>
+            <td>15</td>
+            <td class="pass">15</td>
+            <td class="fail">0</td>
+            <td class="skip">0</td>
+            <td>✅</td>
+        </tr>
+        <tr>
+            <td>Topic Guard</td>
+            <td>29</td>
+            <td class="pass">29</td>
+            <td class="fail">0</td>
+            <td class="skip">0</td>
+            <td>✅</td>
+        </tr>
+        <tr>
+            <td>Market Hours</td>
+            <td>6</td>
+            <td class="pass">6</td>
+            <td class="fail">0</td>
+            <td class="skip">0</td>
+            <td>✅</td>
+        </tr>
+        <tr>
+            <td>LLM Responses</td>
+            <td>8</td>
+            <td class="pass">8</td>
+            <td class="fail">0</td>
+            <td class="skip">0</td>
+            <td>✅</td>
+        </tr>
+    </table>
+</div>
+
+
+
+<div class="section">
+    <h2>🏥 Data Source Health</h2>
+    
+        <div class="health-row">
+            <span>✅</span>
+            <span class="health-name">yfinance</span>
+            <span class="health-status pass">Working (15 min delay)</span>
+        </div>
+        <div class="health-row">
+            <span>✅</span>
+            <span class="health-name">NSE India API</span>
+            <span class="health-status pass">Working</span>
+        </div>
+        <div class="health-row">
+            <span>⏭️</span>
+            <span class="health-name">Angel One</span>
+            <span class="health-status skip">Not configured (skipped)</span>
+        </div>
+        <div class="health-row">
+            <span>❌</span>
+            <span class="health-name">Google News RSS</span>
+            <span class="health-status fail">Not working</span>
+        </div>
+        <div class="health-row">
+            <span>✅</span>
+            <span class="health-name">Groq LLM</span>
+            <span class="health-status pass">Working</span>
+        </div>
+</div>
+
+<div class="section">
+    <h2>💡 Recommendations</h2>
+    <div class="rec-item">💡 NSE India: NSE may be rate-limiting. Try again in a few seconds.</div>
+</div>
+
+<div class="section">
+    <h2>🔍 Detailed Results</h2>
+    <h3 class="cat-header">Data Sources</h3>
+            <div class="test-row failed">
+                <span class="test-icon">❌</span>
+                <span class="test-name">TestNSEIndia</span>
+                <span class="test-time">0.0s</span>
+                <div class="test-msg">FAILED tests/test_data_sources.py::TestNSEIndia::test_nse_connection - Assert...</div>
+            </div>
+            <div class="test-row failed">
+                <span class="test-icon">❌</span>
+                <span class="test-name">TestNSEIndia</span>
+                <span class="test-time">0.0s</span>
+                <div class="test-msg">FAILED tests/test_data_sources.py::TestNSEIndia::test_all_indices - Assertion...</div>
+            </div><h3 class="cat-header">Tools</h3><h3 class="cat-header">Topic Guard</h3><h3 class="cat-header">Market Hours</h3><h3 class="cat-header">LLM Responses</h3>
+</div>
+
+<div style="text-align:center; color:#8b949e; margin-top:40px; font-size:12px; padding:20px;">
+    ⏱️ Total Time: 243.8s | Generated: 12 March 2026, 01:27 PM | 🇮🇳 Made in India
+</div>
+</body>
+</html>

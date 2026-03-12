@@ -6,7 +6,7 @@ const WELCOME_MESSAGE: Message = {
     id: "welcome",
     role: "assistant",
     content:
-        "👋 **Namaste!** I'm your Indian Stock Market Assistant.\n\nI can help you with:\n- 📊 **Live stock prices** (Reliance, TCS, Infosys...)\n- 📈 **Technical analysis** (RSI, MACD, moving averages)\n- 💰 **Fundamentals** (PE ratio, market cap, debt)\n- 📰 **Market news** and sector performance\n- 🏆 **Top gainers & losers** on NSE\n\nWhat would you like to know today?",
+        "👋 **Namaste!** I am your SEBI-compliant Indian Stock Market Assistant.\n\nI specialise exclusively in Indian capital markets and can help you with:\n\n- 📈 **Live stock prices** and market data\n- 🔢 **Technical analysis** in simple language\n- 💰 **Company fundamental analysis**\n- 📰 **Market news** and IPO updates\n- 🏦 **Nifty, Sensex** and sector indices\n- 📊 **Mutual funds** and ETF analysis\n\n⚠️ **Important:** I only answer stock market related questions. For other topics, please use a general assistant.\n\nWhat would you like to analyse today? 🇮🇳",
     timestamp: new Date(),
 };
 
