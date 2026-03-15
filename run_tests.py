@@ -169,10 +169,33 @@ def get_data_source_health(categories_results):
     else:
         health["Angel One"] = {"ok": False, "label": "Login failed"}
 
-    # Google News
-    news_ok = tools and any("news" in t["name"].lower() and t["status"] == "passed"
-                            for t in tools.get("tests", []))
-    health["Google News RSS"] = {"ok": news_ok, "label": "Working" if news_ok else "Not working"}
+    # News Sources
+    try:
+        from tools.news import check_news_health
+        news_health = check_news_health()
+        
+        if "MoneyControl" in news_health:
+            health["MoneyControl RSS"] = {
+                "ok": news_health["MoneyControl"].get("working", False),
+                "label": news_health["MoneyControl"].get("status", "Unknown")
+            }
+        if "Economic Times" in news_health:
+            health["Economic Times RSS"] = {
+                "ok": news_health["Economic Times"].get("working", False),
+                "label": news_health["Economic Times"].get("status", "Unknown")
+            }
+        if "Yahoo Finance" in news_health:
+            health["Yahoo Finance News"] = {
+                "ok": news_health["Yahoo Finance"].get("working", False),
+                "label": news_health["Yahoo Finance"].get("status", "Unknown")
+            }
+        if "_overall" in news_health:
+            health["Overall News"] = {
+                "ok": news_health["_overall"].get("sources_working", 0) > 0,
+                "label": news_health["_overall"].get("status", "Unknown")
+            }
+    except Exception as e:
+        health["News Sources"] = {"ok": False, "label": f"Health check failed: {e}"}
 
     # Groq LLM
     if llm:

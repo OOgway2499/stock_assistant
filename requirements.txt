@@ -9,3 +9,4 @@ python-dotenv
 smartapi-python
 pyotp
 websocket-client
+lxml

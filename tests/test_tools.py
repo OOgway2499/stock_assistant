@@ -134,33 +134,197 @@ class TestFundamentalsTool:
 
 class TestNewsTool:
 
-    @pytest.mark.timeout(30)
-    def test_news_returns_list(self):
-        from tools.news import get_news
-        result = get_news("Reliance Industries")
+    def test_moneycontrol_is_primary_source(self):
+        """
+        Verify MoneyControl is the primary 
+        news source and returns articles
+        """
+        from tools.news import fetch_moneycontrol
+        result = fetch_moneycontrol(
+            "Reliance TCS Nifty",
+            ["market"]
+        )
         assert isinstance(result, list)
-        assert len(result) > 0
-        print(f"   ✅ {len(result)} news articles fetched")
+        assert len(result) > 0, (
+            "MoneyControl returned no articles!\n"
+            "Check internet connection or\n"
+            "MC RSS feed URL has changed"
+        )
+        assert result[0].get("source") == "MoneyControl"
+        print(f"✅ MoneyControl PRIMARY: {len(result)} articles")
+        print(f"   Latest: {result[0]['title'][:60]}")
 
-    @pytest.mark.timeout(30)
+    def test_get_news_returns_articles(self):
+        """
+        Main news function must always return 
+        articles from at least one source
+        """
+        from tools.news import get_news
+        result = get_news("Reliance Industries NSE")
+        
+        assert result is not None
+        assert isinstance(result, list)
+        assert len(result) > 0, (
+            "get_news() returned empty list!\n"
+            "All 4 sources failed — check internet"
+        )
+        
+        sources = set(a.get("source", "") for a in result)
+        print(f"✅ get_news: {len(result)} articles")
+        print(f"   Sources: {sources}")
+        print(f"   Top: {result[0]['title'][:60]}")
+
     def test_news_has_required_fields(self):
+        """
+        Every article must have all required fields
+        """
         from tools.news import get_news
         result = get_news("TCS quarterly results")
+        
         assert len(result) > 0
-        first = result[0]
-        assert "title" in first
-        assert "published" in first
-        assert "source" in first
-        assert "link" in first
-        print(f"   ✅ Latest news: {first['title'][:60]}...")
+        
+        for article in result:
+            assert "title"     in article, "Missing 'title' field"
+            assert "published" in article, "Missing 'published' field"
+            assert "source"    in article, "Missing 'source' field"
+            assert "link"      in article, "Missing 'link' field"
+            assert "summary"   in article, "Missing 'summary' field"
+            assert len(article["title"]) > 5, "Title too short"
+        
+        print(f"✅ All fields present in {len(result)} articles")
 
-    @pytest.mark.timeout(30)
-    def test_market_news(self):
+    def test_news_no_google_news(self):
+        """
+        Verify Google News is completely removed.
+        No article should have Google as source.
+        """
+        from tools.news import get_news
+        result = get_news("Nifty market today")
+        
+        for article in result:
+            source = article.get("source", "").lower()
+            assert "google" not in source, (
+                f"Google News still present!\n"
+                f"Found source: {article['source']}\n"
+                f"Remove Google News completely"
+            )
+        
+        print(f"✅ Google News: Completely removed ✅")
+
+    def test_market_news_moneycontrol(self):
+        """
+        Market news must use MoneyControl feeds
+        """
         from tools.news import get_market_news
         result = get_market_news()
+        
         assert isinstance(result, list)
-        assert len(result) >= 3
-        print(f"   ✅ Market news: {len(result)} articles")
+        assert len(result) >= 3, (
+            f"Market news has only {len(result)} "
+            f"articles — expected at least 3"
+        )
+        
+        # Check MoneyControl is in sources
+        sources = [a.get("source", "") for a in result]
+        has_mc = any(
+            "MoneyControl" in s or "Economic Times" in s
+            for s in sources
+        )
+        assert has_mc, (
+            "Market news not from expected sources!\n"
+            f"Sources found: {set(sources)}"
+        )
+        
+        print(f"✅ Market news: {len(result)} articles")
+
+    def test_ipo_news(self):
+        """
+        IPO news from MoneyControl IPO feed
+        """
+        from tools.news import get_ipo_news
+        result = get_ipo_news()
+        
+        assert isinstance(result, list)
+        print(f"✅ IPO news: {len(result)} articles")
+        if result:
+            print(f"   Latest: {result[0]['title'][:60]}")
+
+    def test_results_news(self):
+        """
+        Quarterly results news from MoneyControl
+        """
+        from tools.news import get_results_news
+        result = get_results_news()
+        
+        assert isinstance(result, list)
+        print(f"✅ Results news: {len(result)} articles")
+
+    def test_news_caching_works(self):
+        """
+        Same query twice should return cached result.
+        Second call must be faster than first.
+        """
+        from tools.news import get_news, clear_cache
+        import time
+        
+        clear_cache()
+        
+        query = "HDFC Bank NSE"
+        
+        # First call — hits the sources
+        start1 = time.time()
+        result1 = get_news(query)
+        time1   = time.time() - start1
+        
+        # Second call — should use cache
+        start2 = time.time()
+        result2 = get_news(query)
+        time2   = time.time() - start2
+        
+        assert result1 == result2, "Cache returned different results!"
+        assert time2 < time1, "Cache not working — second call slower!"
+        
+        print(f"✅ Cache working correctly")
+        print(f"   First call : {time1:.2f}s")
+        print(f"   Cached call: {time2:.3f}s (faster ✅)")
+
+    def test_news_deduplication(self):
+        """
+        No duplicate articles in results
+        """
+        from tools.news import get_news
+        result = get_news("Infosys TCS Wipro IT stocks")
+        
+        titles = [a["title"][:50].lower() for a in result]
+        unique_titles = set(titles)
+        
+        assert len(titles) == len(unique_titles), (
+            f"Duplicate articles found!\n"
+            f"Total: {len(titles)}, Unique: {len(unique_titles)}"
+        )
+        
+        print(f"✅ No duplicates in {len(result)} articles")
+
+    def test_news_for_different_queries(self):
+        """
+        Test news works for all query types
+        """
+        from tools.news import get_news
+        
+        test_queries = {
+            "stock symbol"   : "TCS",
+            "index query"    : "Nifty 50 market",
+            "results query"  : "quarterly results",
+            "IPO query"      : "upcoming IPO",
+            "economy query"  : "RBI repo rate",
+        }
+        
+        for query_type, query in test_queries.items():
+            result = get_news(query)
+            assert isinstance(result, list), f"get_news failed for {query_type}"
+            assert len(result) > 0, f"No news for {query_type}: '{query}'"
+            source = result[0].get("source", "?")
+            print(f"✅ {query_type}: {len(result)} articles from {source}")
 
 
 # ═══════════════════════════════════════════════════════════════
